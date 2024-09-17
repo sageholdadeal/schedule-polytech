@@ -87,7 +87,7 @@ def send_schedule(message):
 
     if user_id in USER_REQUESTS:
         last_request_time = USER_REQUESTS[user_id]
-        if current_time - last_request_time < 60:  # 60 секунд
+        if current_time - last_request_time < 300:  # 60 секунд
             bot.reply_to(message, "Вы слишком часто запрашиваете расписание. Пожалуйста, подождите.")
             return
     
