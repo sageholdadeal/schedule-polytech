@@ -7,6 +7,7 @@ import io
 import pandas as pd
 import re
 from datetime import datetime
+import time
 
 TOKEN = '7532741882:AAENZLumHJyXYXImkHv-gflYKxejWmIyDD0'
 
@@ -15,6 +16,8 @@ bot = telebot.TeleBot(TOKEN)
 # Хранение идентификаторов сообщений
 last_message_id = None
 last_user_message_id = None
+
+USER_REQUESTS = {}
 
 def fetch_schedule_link():
     url = 'https://politech-nsk.ru/index.php/studentam'
@@ -55,6 +58,8 @@ def send_welcome(message):
 
 @bot.message_handler(func=lambda message: message.text == '📅 Получить расписание')
 def send_schedule(message):
+    user_id = message.from_user.id
+    current_time = time.time()
     global last_message_id, last_user_message_id
     
     # Удаляем предыдущее сообщение пользователя, если оно существует
@@ -79,6 +84,14 @@ def send_schedule(message):
         file_data.seek(0)
         response_message = bot.send_document(message.chat.id, (file_name, file_data))
         last_message_id = response_message.message_id
+
+    if user_id in USER_REQUESTS:
+        last_request_time = USER_REQUESTS[user_id]
+        if current_time - last_request_time < 60:  # 60 секунд
+            bot.reply_to(message, "Вы слишком часто запрашиваете расписание. Пожалуйста, подождите.")
+            return
+    
+    USER_REQUESTS[user_id] = current_time
 
 if __name__ == '__main__':
     bot.infinity_polling()
